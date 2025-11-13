@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\ConstraintViolationInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -20,7 +22,8 @@ final class AuthController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        ValidatorInterface $validator
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -35,10 +38,6 @@ final class AuthController extends AbstractController
         $lastName = $data['lastName'] ?? null;
         $phone = $data['phone'] ?? null;
 
-        if (!$email || !$password || !$firstName || !$lastName || !$phone) {
-            return new JsonResponse(['error' => 'Missing required fields'], Response::HTTP_BAD_REQUEST);
-        }
-
         if ($userRepository->findOneBy(['email' => $email])) {
             return new JsonResponse(['error' => 'Email already in use'], Response::HTTP_CONFLICT);
         }
@@ -48,10 +47,25 @@ final class AuthController extends AbstractController
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
         $user->setPhone($phone);
+        $user->setCreatedAt(new \DateTimeImmutable());
+
+        $user->setPassword($password);
+
+        $errors = $validator->validate($user);
+
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            /** @var ConstraintViolationInterface $error */
+            foreach ($errors as $error) {
+                $errorMessages[$error->getPropertyPath()] = $error->getMessage();
+            }
+
+            return $this->json(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
+        }
+
         $hashedPassword = $passwordHasher->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
         $user->setRoles(['ROLE_USER']);
-        $user->setCreatedAt(new \DateTimeImmutable());
 
         $em->persist($user);
         $em->flush();
