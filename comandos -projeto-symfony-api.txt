@@ -1,0 +1,32 @@
+symfony new my_project_directory --version="7.3.x"
+
+################################ Gemini
+# O "cérebro" para criar APIs rapidamente (CRUD, filtros, etc.)
+composer require api-platform/api-platform
+
+# Para gerar código (entidades, controllers, etc.)
+composer require symfony/maker-bundle
+
+# Para autenticação e hash de senha (bcrypt já é o padrão)
+composer require symfony/security-bundle
+
+# Para gerar tokens JWT no login
+composer require lexik/jwt-authentication-bundle
+
+# Para permitir que o frontend (ex: localhost:5173) acesse a API (ex: localhost:8000)
+composer require nelmio/cors-bundle
+
+php bin/console lexik:jwt:generate-keys
+#########################
+
+################ GPT
+composer require api symfony/orm-pack symfony/maker-bundle symfony/validator symfony/security-bundle symfony/password-hasher lexik/jwt-authentication-bundle nelmio/cors-bundle
+
+mkdir -p config/jwt
+# gera chave privada
+openssl genrsa -out config/jwt/private.pem -aes256 4096
+# gera chave pública
+openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
+# remova a passphrase ou configure as variáveis de ambiente corretamente
+
+####################
