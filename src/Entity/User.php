@@ -35,8 +35,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20)]
     #[Assert\NotBlank(message: "Phone is required.")]
     #[Assert\Regex(
-        pattern: '/^\(\d{2}\)\s\d{4,5}-\d{4}$/',
-        message: "Phone must be in the format (XX) XXXXX-XXXX"
+        pattern: '/^\d{10,11}$/',
+        message: "Phone must contain 10 or 11 digits"
     )]
     private ?string $phone = null;
 

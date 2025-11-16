@@ -20,7 +20,12 @@ final class PetController extends AbstractController
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(PetRepository $petRepository): JsonResponse
     {
-        $pets = $petRepository->findAll();
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+        /** @var User $user */
+        $pets = $petRepository->findBy(['owner' => $user]);
 
         $data = array_map(function (Pet $pet) {
             return [

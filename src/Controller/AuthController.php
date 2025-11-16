@@ -38,6 +38,8 @@ final class AuthController extends AbstractController
         $lastName = $data['lastName'] ?? null;
         $phone = $data['phone'] ?? null;
 
+        $phone = preg_replace('/\D/', '', $phone);
+
         if ($userRepository->findOneBy(['email' => $email])) {
             return new JsonResponse(['error' => 'Email already in use'], Response::HTTP_CONFLICT);
         }
